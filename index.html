@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>d3js Treemap</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles.css">
+    <script type='text/javascript' src="https://d3js.org/d3.v5.js"></script>
+  </head>
+  <body>
+    <div class='main'>
+        <div class='links'>
+                <h3 class='linksText'><a href='#' class='games'>Video Game Data Set</a> | <a href='#' class='movies'>Movies Data Set</a> | <a href="#" class='kickstarter'>Kickstarter Data Set</a></h3>
+        </div>
+        <div class='title'>
+
+        </div>
+        <div class="visual">
+
+        </div>
+        <div class='legend'>
+
+        </div>
+        <div class='tooltip'>
+        </div>
+    </div>
+  </body>
+  <script>
+      // fetch data in json format and return an array of data via Promise.all
+      fetchData = () => {
+          const urls = [
+            'https://cdn.rawgit.com/freeCodeCamp/testable-projects-fcc/a80ce8f9/src/data/tree_map/video-game-sales-data.json',
+            'https://cdn.rawgit.com/freeCodeCamp/testable-projects-fcc/a80ce8f9/src/data/tree_map/kickstarter-funding-data.json',
+            'https://cdn.rawgit.com/freeCodeCamp/testable-projects-fcc/a80ce8f9/src/data/tree_map/movie-data.json'
+          ]
+          const allRequests = urls.map(url=>fetch(url).then(response => response.json()));
+
+          return Promise.all(allRequests);
+      }
+
+      fetchData().then(function(json) {
+            /* setting up event listeners to make svg dynamic on lick clicks
+            
+            each event listener pulls class of <a> element in <body> and launches d3js() function based on where the corresponding link is in our response 'data' variable */
+            document.querySelector('.games').addEventListener('click', () => {reset(); d3js(json[0], 0)})
+
+            document.querySelector('.movies').addEventListener('click', () => {reset(); d3js(json[1], 1)})
+
+            document.querySelector('.kickstarter').addEventListener('click', () => {reset(); d3js(json[2], 2)})
+
+            // Title, Subtitle array
+            let title = [
+                'Video Game Sales',
+                'Movie Sales',
+                'Kickstarter Pledges'
+
+            ]
+            let subTitle = [
+                'Top 100 Most Sold Video Games Grouped by Platform',
+                'Top 100 Most Pledged Kickstarter Campaigns Grouped By Category',
+                'Top 100 Highest Grossing Movies Grouped By Genre'
+
+            ]
+            
+            // this function visualizes the data based on what portion of the array it's provided via the event listeners above
+            function d3js(data, i) {
+                document.querySelector('.title').innerHTML = `<h3 class='title'>${title[i]}</h3><h6 class='subTitle'>${subTitle[i]}</h6>`
+                const margin = {
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0
+                }
+                width = 960 - margin.left - margin.right;
+                height = 570 - margin.top - margin.bottom;
+
+                let categories = [];
+                for(i=0; i<data.children.length; i++) {
+                    categories.push(data.children[i].name)
+                }
+
+                const tooltip = d3.select('.tooltip')
+                    .attr('id','tooltip')
+                    .style('opacity',0)
+
+                const svg = d3.select('.visual')
+                .append('svg')
+                    .attr('width', width + margin.left + margin.right)
+                    .attr('height', height + margin.top + margin.bottom)
+                    .attr('id','svgTreemap')
+                .append('g')
+                    .attr('transform','translate(' + margin.left + ',' + margin.top + ')')
+
+                const color = d3.scaleOrdinal()
+                    .domain(categories)
+                    .range(["#2db315", "#3905f4", "#ff697c", "#14a6e3", "#4f5024", "#742d8f", "#d9890f", "#27af8d", "#f94ffb", "#b591a4", "#873212", "#97a32f", "#2a5268", "#990257", "#8992f9", "#e274c5", "#bf9364", "#2a37cb", "#014d98"])
+
+                const root = d3.hierarchy(data).sum(function(d){
+                    return d.value
+                }).sort(function(a, b) {
+                    return b.height - a.height || b.value - a.value;
+                });
+
+
+                d3.treemap()
+                    .size([width, height])
+                    .paddingInner(2)
+                    (root)
+                
+                var cell = svg.selectAll('g')
+                    .data(root.leaves())
+                    .enter()
+                    .append('g')
+                    
+                    
+                var tile = cell.append('rect')
+                    .attr('x', function(d) { return d.x0;})
+                    .attr('y',function(d){return d.y0})
+                    .attr('width', function(d) {return d.x1 - d.x0})
+                    .attr('class','rect')
+                    .attr('height', function(d) {return d.y1 - d.y0;})
+                    .style('fill',function(d){
+                        return color(d.parent.data.name)
+                        console.log(d.parent.data.name)
+                    })
+                    .style('stroke-width','1px')
+                    .on('mousemove', function(d,i) {
+                        tooltip.transition()
+                            .duration(20)
+                            .style('opacity','.7')
+                            .style("left", (d3.event.pageX + 10) + "px") 
+                            .style("top", (d3.event.pageY - 28) + "px")
+                            tooltip.html(
+                                'Name: ' + d.data.name + 
+                                '<br>Category: ' + d.data.category + 
+                                '<br>Value: ' + d.data.value
+                            )
+                    })
+                    .on('mouseout', function(d,i) {
+                        tooltip.transition()
+                            .duration(20)
+                            .style('opacity','0')
+                    })
+
+                const text = cell.append('text')
+                    .attr('class','labels')
+                    .attr('x', function(d)
+                    {return d.x0+5})
+                    .attr('y', function(d, i) {return d.y0+12})
+                        
+                text.selectAll('tspan')
+                    .data(function(d){return d.data.name.split(/(?=[A-Z][^A-Z])/g); })
+                    .enter()
+                    .append('tspan')
+                    .attr('x', function(d,i) {
+                        return this.parentNode.getAttribute('x')
+                    })
+                    .attr('y',function(d,i) {
+                        return parseInt(this.parentNode.getAttribute('y'),10) + (i*10)
+                    })
+                    .text(function(d){return d})
+                    .attr('fill','white')
+                
+                const legendWidth = 800;
+                const legendHeight = 32 * 5;
+                const boxSizing = 20;
+                
+                const legendSVG = d3.select('.legend').append('svg')
+                    .attr('id','legend')
+                    .attr('width',legendWidth)
+                    .attr('height',legendHeight)
+                
+                legendSVG.selectAll('rect')
+                    .data(categories)
+                    .enter()
+                    .append('rect')
+                    .attr('height',boxSizing)
+                    .attr('width',boxSizing)
+                    .attr('class',function(d,i){
+                        return `legendRect${i}`
+                    })
+                    .attr('y', function(d,i) {
+                        return (i%5) * 30 + 15
+                    })
+                    .attr('x', function(d,i){
+                        i = i + 1;
+                        let counter = 21;
+                        for (l = 1; l < i; l++) {
+                            if ((l % 5) == 0) {
+                                counter += 200;
+                            }
+                        }
+                        return counter;
+                    })
+                    .attr('fill',function(d) {
+                        return color(d);
+                    })
+                    .style('stroke','black')
+
+                legendSVG.selectAll('text')
+                    .data(categories)
+                    .enter()
+                    .append('text')
+                    .attr('y', function(d,i) {
+                        return (i%5) * 30 + 31
+                    })
+                    .attr('x', function(d,i){
+                        i = i + 1;
+                        let counter = 50;
+                        for (l = 1; l < i; l++) {
+                            if ((l % 5) == 0) {
+                                counter += 200;
+                            }
+                        }
+                        return counter;
+                    })
+                    .text(function(d){
+                        return d;
+                    })
+            }
+        
+
+            // default to load the first dataset
+            d3js(json[0],0)
+
+            // remove svg every time link is clicked
+            function reset() {
+                document.getElementById('svgTreemap').remove();
+                document.getElementById('legend').remove();
+            }
+      })
+  </script>
+</html>

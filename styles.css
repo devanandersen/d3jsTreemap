@@ -1,0 +1,81 @@
+* {
+    margin: 0;
+    padding: 0;
+    overflow: scroll;
+}
+
+.links {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+}
+
+.titles {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1000px;
+}
+
+.title {
+    text-align: center;
+}
+
+.subTitle {
+    text-align: center;
+}
+
+.links {
+    margin: 10px;
+    text-align: center;
+}
+
+.linksText {
+    font-weight: normal;
+    font-size: 16px;
+}
+
+.labels {
+    font-size: 10px;
+    word-wrap: wrap;
+}
+
+.rect {
+    opacity: .8;
+    stroke: black;
+}
+
+.rect:hover {
+    opacity: 1;
+}
+
+#tooltip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    text-align: center;
+    overflow: contain;
+    background: black;
+    color: white;
+    width: auto;
+    height: auto;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: bold;
+    border: 1px white solid;
+    border-radius: 5px;
+    pointer-events: none;
+}
