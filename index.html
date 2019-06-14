@@ -22,9 +22,6 @@
         <div class="visual">
 
         </div>
-        <div class='legend'>
-
-        </div>
         <div class='tooltip'>
         </div>
     </div>
@@ -165,11 +162,11 @@
                     .text(function(d){return d})
                     .attr('fill','white')
                 
-                const legendWidth = 800;
+                const legendWidth = 960;
                 const legendHeight = 32 * 5;
                 const boxSizing = 20;
                 
-                const legendSVG = d3.select('.legend').append('svg')
+                const legendSVG = d3.select('.main').append('svg')
                     .attr('id','legend')
                     .attr('width',legendWidth)
                     .attr('height',legendHeight)
